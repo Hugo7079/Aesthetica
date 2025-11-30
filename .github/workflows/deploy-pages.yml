@@ -22,13 +22,13 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Add .nojekyll to dist
-        run: touch ./dist/.nojekyll
+      - name: Add .nojekyll to docs
+        run: touch ./docs/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ./dist
+          path: ./docs
 
   deploy:
     needs: build

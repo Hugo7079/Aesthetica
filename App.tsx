@@ -441,7 +441,7 @@ const App: React.FC = () => {
           className={`relative p-6 rounded-xl border transition-all duration-300 group overflow-hidden ${
             stats.dailyProgress.mcqCount >= 10 
             ? 'bg-black/40 border-white/5 opacity-50 cursor-not-allowed' 
-            : 'bg-[#1e1e1e] border-white/10 hover:border-aesthetic-gold/50 hover:bg-[#252525] cursor-pointer shadow-lg'
+            : 'bg-[#1e1e1e] border-white/10 hover:border-blue-400/60 hover:bg-[#252525] cursor-pointer shadow-lg'
           }`}
         >
           <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition">
@@ -463,7 +463,7 @@ const App: React.FC = () => {
             {stats.dailyProgress.mcqCount >= 10 ? (
               <CheckCircle className="text-green-500" size={24} />
             ) : (
-              <div className="flex items-center gap-1 text-aesthetic-gold text-sm group-hover:translate-x-1 transition">
+              <div className="flex items-center gap-1 text-blue-400 text-sm group-hover:translate-x-1 transition">
                  開始 <ArrowRight size={16} />
               </div>
             )}
