@@ -22,6 +22,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Add .nojekyll to dist
+        run: touch ./dist/.nojekyll
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
