@@ -398,14 +398,14 @@ const App: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
         <div className="w-full">
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-3xl font-serif text-white">{currentLevelInfo.title}</h2>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white leading-tight">{currentLevelInfo.title}</h2>
             <span className="text-xs bg-aesthetic-gold/10 text-aesthetic-gold px-2 py-1 rounded border border-aesthetic-gold/20">
                {stats.username}
             </span>
           </div>
-          <p className="text-aesthetic-gold/80 italic font-serif mb-4 min-h-[1.5rem]">{greeting}</p>
+          <p className="text-aesthetic-gold/80 italic font-serif mb-6 text-lg md:text-xl min-h-[1.5rem]">{greeting}</p>
           
-          <div className="flex flex-col w-full max-w-md">
+          <div className="flex flex-col w-full md:max-w-4xl lg:max-w-6xl">
              <div className="flex justify-between text-xs text-gray-400 mb-1">
                 <span>Lvl {stats.level}</span>
                 <span>{nextLevelInfo ? `${stats.xp} / ${nextLevelInfo.xp} XP` : 'MAX'}</span>
@@ -434,11 +434,11 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Card 1: MCQ */}
         <div 
           onClick={() => stats.dailyProgress.mcqCount < 10 && setActiveTask(TaskType.MULTIPLE_CHOICE)}
-          className={`relative p-6 rounded-xl border transition-all duration-300 group overflow-hidden ${
+          className={`relative p-8 rounded-2xl border transition-all duration-300 group overflow-hidden ${
             stats.dailyProgress.mcqCount >= 10 
             ? 'bg-black/40 border-white/5 opacity-50 cursor-not-allowed' 
             : 'bg-[#1e1e1e] border-white/10 hover:border-aesthetic-gold/50 hover:bg-[#252525] cursor-pointer shadow-lg'
@@ -453,8 +453,8 @@ const App: React.FC = () => {
              </div>
              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fast Pace</span>
           </div>
-          <h3 className="text-xl font-serif text-white mb-2">每日快問快答</h3>
-          <p className="text-sm text-gray-400 mb-6">連續挑戰美感判斷，速度越快 XP 越高。</p>
+          <h3 className="text-2xl md:text-3xl font-serif text-white mb-2">每日快問快答</h3>
+          <p className="text-base md:text-lg text-gray-400 mb-6">連續挑戰美感判斷，速度越快 XP 越高。</p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
                <span className="text-2xl font-bold text-white">{stats.dailyProgress.mcqCount}</span>
@@ -468,7 +468,7 @@ const App: React.FC = () => {
               </div>
             )}
           </div>
-          <div className="w-full bg-gray-800 h-1 mt-4 rounded-full overflow-hidden">
+          <div className="w-full bg-gray-800 h-2 mt-6 rounded-full overflow-hidden">
             <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${(stats.dailyProgress.mcqCount / 10) * 100}%` }}></div>
           </div>
         </div>
@@ -476,7 +476,7 @@ const App: React.FC = () => {
         {/* Card 2: Observation */}
         <div 
            onClick={() => !stats.dailyProgress.observationDone && setActiveTask(TaskType.OBSERVATION)}
-           className={`relative p-6 rounded-xl border transition-all duration-300 group overflow-hidden ${
+           className={`relative p-8 rounded-2xl border transition-all duration-300 group overflow-hidden ${
              stats.dailyProgress.observationDone
              ? 'bg-black/40 border-white/5 opacity-50 cursor-not-allowed' 
              : 'bg-[#1e1e1e] border-white/10 hover:border-aesthetic-gold/50 hover:bg-[#252525] cursor-pointer shadow-lg'
@@ -491,8 +491,8 @@ const App: React.FC = () => {
              </div>
              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Focus</span>
           </div>
-          <h3 className="text-xl font-serif text-white mb-2">每日觀察練習</h3>
-          <p className="text-sm text-gray-400 mb-6">靜下心來描述細節。高經驗值任務。</p>
+          <h3 className="text-2xl md:text-3xl font-serif text-white mb-2">每日觀察練習</h3>
+          <p className="text-base md:text-lg text-gray-400 mb-6">靜下心來描述細節。高經驗值任務。</p>
           <div className="flex items-center justify-between">
              <span className="text-sm text-gray-400">{stats.dailyProgress.observationDone ? '已完成' : '尚未開始'}</span>
              {stats.dailyProgress.observationDone ? (
@@ -506,7 +506,7 @@ const App: React.FC = () => {
         {/* Card 3: Weekly Analysis */}
         <div 
            onClick={() => isWeeklyAvailable() && setActiveTask(TaskType.ANALYSIS)}
-           className={`relative p-6 rounded-xl border transition-all duration-300 group overflow-hidden ${
+           className={`relative p-8 rounded-2xl border transition-all duration-300 group overflow-hidden ${
              !isWeeklyAvailable()
              ? 'bg-black/40 border-white/5 opacity-50 cursor-not-allowed' 
              : 'bg-[#1e1e1e] border-white/10 hover:border-purple-500/50 hover:bg-[#252525] cursor-pointer shadow-lg'
@@ -521,8 +521,8 @@ const App: React.FC = () => {
              </div>
              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Weekly Epic</span>
           </div>
-          <h3 className="text-xl font-serif text-white mb-2">每週深度講評</h3>
-          <p className="text-sm text-gray-400 mb-6">挑戰極限。最高經驗值與徽章獲取機會。</p>
+          <h3 className="text-2xl md:text-3xl font-serif text-white mb-2">每週深度講評</h3>
+          <p className="text-base md:text-lg text-gray-400 mb-6">挑戰極限。最高經驗值與徽章獲取機會。</p>
           <div className="flex items-center justify-between mt-auto">
              <span className="text-sm text-gray-400">
                 {isWeeklyAvailable() ? '任務已解鎖' : '下週再來'}
@@ -609,12 +609,12 @@ const App: React.FC = () => {
             <span>加入於 {stats.dailyProgress.lastDate.split('-')[0]}</span>
          </p>
 
-         <div className="max-w-md mx-auto bg-black/40 rounded-full h-4 relative overflow-hidden">
+         <div className="max-w-lg md:max-w-3xl mx-auto bg-black/40 rounded-full h-4 relative overflow-hidden">
             <div className="absolute top-0 left-0 h-full bg-aesthetic-gold transition-all duration-1000" 
                  style={{ width: nextLevelInfo ? `${((stats.xp - currentLevelInfo.xp) / (nextLevelInfo.xp - currentLevelInfo.xp)) * 100}%` : '100%' }}>
             </div>
          </div>
-         <div className="flex justify-between max-w-md mx-auto mt-2 text-xs text-gray-500">
+         <div className="flex justify-between max-w-lg md:max-w-3xl mx-auto mt-2 text-xs text-gray-500">
            <span>{currentLevelInfo.xp} XP</span>
            <span>{nextLevelInfo ? `${nextLevelInfo.xp} XP` : 'MAX'}</span>
          </div>
