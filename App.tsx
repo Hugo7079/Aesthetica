@@ -800,7 +800,11 @@ const App: React.FC = () => {
                     {/* Filter Bar */}
                     <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
                         <Filter size={16} className="text-gray-500 mr-1" />
-                        <button onClick={() => setHistoryFilter('ALL')} className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border ${historyFilter === 'ALL' ? 'bg-aesthetic-gold text-black border-aesthetic-gold' : 'text-gray-400 border-white/10'}`}>全部</button>
+                        <button 
+                          onClick={() => setHistoryFilter('ALL')} 
+                          className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border ${historyFilter === 'ALL' ? 'bg-aesthetic-gold text-[#0c0c0c] font-semibold shadow-[0_0_10px_rgba(212,175,55,0.35)] border-aesthetic-gold' : 'text-gray-300 border-white/10'}`}>
+                          全部
+                        </button>
                         <button onClick={() => setHistoryFilter('ERRORS')} className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border ${historyFilter === 'ERRORS' ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'text-gray-400 border-white/10'}`}>低分/錯題</button>
                         <button onClick={() => setHistoryFilter('MCQ')} className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border ${historyFilter === 'MCQ' ? 'bg-blue-500/20 text-blue-400 border-blue-500/50' : 'text-gray-400 border-white/10'}`}>快問快答</button>
                         <button onClick={() => setHistoryFilter('OBSERVATION')} className={`px-3 py-1 rounded-full text-xs whitespace-nowrap border ${historyFilter === 'OBSERVATION' ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'text-gray-400 border-white/10'}`}>觀察分析</button>
@@ -864,7 +868,7 @@ const App: React.FC = () => {
       
       {/* Mobile Bottom Navigation */}
       {!activeTask && (
-        <nav className="md:hidden fixed bottom-0 w-full bg-[#121212]/95 backdrop-blur-xl border-t border-white/10 z-50 safe-area-bottom">
+        <nav className="fixed bottom-0 w-full bg-[#121212]/95 backdrop-blur-xl border-t border-white/10 z-50 safe-area-bottom">
           <div className="flex justify-around items-center h-16">
             <button 
               onClick={() => setActiveTab('dashboard')}

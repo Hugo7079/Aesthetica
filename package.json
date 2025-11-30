@@ -6,10 +6,10 @@
   "homepage": "https://hugo7079.github.io/Aesthetica",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/Aesthetica/",
+    "build": "vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d docs"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
