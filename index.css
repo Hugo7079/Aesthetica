@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fallback / app-level styles */
+@layer base {
+  html, body, #root { height: 100%; margin: 0; font-family: 'Noto Sans TC', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+  body { background-color: #1a1a1a; color: #f4f4f5; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #1a1a1a; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+}
+
+/* Small note: this file is processed by Tailwind/PostCSS when building locally. */
