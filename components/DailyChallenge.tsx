@@ -125,6 +125,18 @@ const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, str
     setUserAnswer(opt);
   };
 
+  const handleCancel = async () => {
+    // If user already has a graded result, persist it before exiting
+    if (challenge && result) {
+      try {
+        await onComplete(challenge, userAnswer, result, timeLeft);
+      } catch (e) {
+        console.warn("Failed to persist result on cancel", e);
+      }
+    }
+    onCancel();
+  };
+
   const handleSubmit = async (isTimeUp = false) => {
     if (!challenge) return;
     if (!userAnswer && !isTimeUp) return; // Allow empty submit if time up
@@ -189,7 +201,7 @@ const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, str
       {/* Header Bar */}
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-            <button onClick={onCancel} className="p-2 hover:bg-white/10 rounded-full transition text-gray-400">
+            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition text-gray-400">
             <ArrowLeft size={24} />
             </button>
             <div className="flex flex-col">
