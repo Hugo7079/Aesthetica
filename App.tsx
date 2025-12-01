@@ -681,6 +681,12 @@ const App: React.FC = () => {
         breadth: ALL_BADGES.filter(b => ['explorer', 'polymath', 'analyst', 'early_bird', 'night_owl'].includes(b.id))
     };
 
+    const badgeSections: { title: string; icon: React.ComponentType<{ size?: number; className?: string }>; badges: Badge[] }[] = [
+      { title: "里程碑", icon: Trophy, badges: badgeGroups.milestones },
+      { title: "技巧與速度", icon: Zap, badges: badgeGroups.skill },
+      { title: "廣度與作息", icon: Brain, badges: badgeGroups.breadth }
+    ];
+
     return (
     <div className="animate-fade-in pb-10">
       <div className="bg-[#1e1e1e] rounded-xl p-8 border border-white/10 text-center mb-8 relative overflow-hidden">
@@ -793,13 +799,12 @@ const App: React.FC = () => {
       </h3>
 
       {/* Render Badge Groups */}
-      {[
-          { title: "🏆 里程碑", badges: badgeGroups.milestones },
-          { title: "⚡ 技巧與速度", badges: badgeGroups.skill },
-          { title: "🧠 廣度與作息", badges: badgeGroups.breadth }
-      ].map((group, idx) => (
+      {badgeSections.map((group, idx) => (
           <div key={idx} className="mb-6">
-            <h4 className="text-sm text-gray-500 font-bold uppercase tracking-wider mb-3 ml-1">{group.title}</h4>
+            <h4 className="flex items-center gap-2 text-sm text-gray-500 font-bold uppercase tracking-wider mb-3 ml-1">
+              <group.icon size={14} className="text-aesthetic-gold" />
+              {group.title}
+            </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {group.badges.map(badge => {
                 const isUnlocked = stats.badges.some(b => b.id === badge.id);
