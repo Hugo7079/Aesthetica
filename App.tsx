@@ -973,25 +973,45 @@ const App: React.FC = () => {
                           </div>
                         </div>
                         <div className="p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded text-gray-400 uppercase tracking-wide">
-                              {item.challenge.category}
-                            </span>
-                            <span className="text-[10px] text-gray-600">
-                              {new Date(item.date).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <h4 className="font-serif text-lg leading-tight mb-3 line-clamp-2 min-h-[3rem]">
-                            {item.challenge.question}
-                          </h4>
-                          <p className="text-sm text-gray-400 line-clamp-2 mb-4 h-10">
-                            {typeof item.assessment.feedback === 'string' ? item.assessment.feedback : 'No feedback'}
-                          </p>
-                        </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded text-gray-400 uppercase tracking-wide">
+                      {item.challenge.category}
+                    </span>
+                    <span className="text-[10px] text-gray-600">
+                      {new Date(item.date).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <h4 className="font-serif text-lg leading-tight mb-3 line-clamp-2 min-h-[3rem]">
+                    {item.challenge.question}
+                  </h4>
+                  <p className="text-sm text-gray-400 line-clamp-2 mb-4 h-10">
+                    {typeof item.assessment.feedback === 'string' ? item.assessment.feedback : 'No feedback'}
+                  </p>
+                  {item.challenge.type === TaskType.MULTIPLE_CHOICE &&
+                   typeof item.challenge.correctOptionIndex === 'number' &&
+                   item.challenge.options &&
+                   item.challenge.options[item.challenge.correctOptionIndex] &&
+                   item.assessment.score < 100 && (
+                    <div className="text-xs text-gray-400 bg-white/5 border border-white/10 rounded-lg p-3 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-gray-500">你的選擇</span>
+                        <span className="text-white truncate max-w-[60%]">
+                          {item.userAnswer || '未作答'}
+                        </span>
                       </div>
-                    ))
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-gray-500">正確答案</span>
+                        <span className="text-green-400 font-semibold truncate max-w-[60%]">
+                          {item.challenge.options[item.challenge.correctOptionIndex]}
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
+              </div>
+            ))
+          )}
+        </div>
               </div>
             )}
           </>
