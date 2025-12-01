@@ -6,13 +6,21 @@ export enum TaskType {
 }
 
 export enum Category {
-  COMPOSITION = '構圖',
-  COLOR_THEORY = '色彩學',
-  FASHION = '時尚穿搭',
-  NATURE = '自然景觀',
-  EMOTION = '情感氛圍',
-  DESIGN = '平面設計',
-  CINEMATOGRAPHY = '電影運鏡'
+  COMPOSITION = '構圖平衡',
+  COLOR = '色彩策略',
+  GRAPHIC_DESIGN = '平面設計',
+  FASHION = '穿搭風格',
+  ARCHITECTURE = '建築風格',
+  LANDSCAPE = '風景賞析',
+  INDUSTRIAL = '工業設計',
+  MOOD = '氛圍敘事',
+  CINEMATIC = '影像敘事',
+  CREATIVE = '跳脫框架',
+  INTERIOR = '室內設計',
+  PHOTOGRAPHY = '攝影取景',
+  ILLUSTRATION = '插畫風格',
+  PACKAGING = '產品包裝',
+  STAGE = '展演佈景'
 }
 
 export interface Challenge {

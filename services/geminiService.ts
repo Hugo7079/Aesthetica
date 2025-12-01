@@ -9,6 +9,12 @@ const getRandomEnumValue = <T>(anEnum: T): T[keyof T] => {
   return enumValues[randomIndex];
 };
 
+const pickCategory = (pool?: Category[]): Category => {
+  const list = (pool && pool.length ? pool : (Object.values(Category) as Category[]));
+  const randomIndex = Math.floor(Math.random() * list.length);
+  return list[randomIndex];
+};
+
 // Helper to clean JSON string (remove markdown code blocks)
 const cleanJsonString = (str: string): string => {
   if (!str) return "{}";
@@ -25,15 +31,15 @@ const getAI = (apiKey: string) => {
 /**
  * Generates the text portion of a challenge
  */
-export const generateChallengeMetadata = async (apiKey: string, specificType?: TaskType): Promise<Omit<Challenge, 'generatedImageUrl'>> => {
+export const generateChallengeMetadata = async (apiKey: string, specificType?: TaskType, categoryPool?: Category[]): Promise<Omit<Challenge, 'generatedImageUrl'>> => {
   const ai = getAI(apiKey);
-  const category = getRandomEnumValue(Category);
+  const category = pickCategory(categoryPool);
   const type = specificType || getRandomEnumValue(TaskType);
   const randomFactor = Math.random();
 
   const typeInstructions = {
     [TaskType.MULTIPLE_CHOICE]: `
-      Generate a MULTIPLE_CHOICE question. 
+      Generate a MULTIPLE_CHOICE question in one short sentence (<= 40 Chinese characters).
       You MUST provide 4 distinct options. 
       The options should NOT be black and white. Design them with "weighted correctness":
       - One "Best" answer (100 points)
@@ -41,16 +47,24 @@ export const generateChallengeMetadata = async (apiKey: string, specificType?: T
       - One "Weak" answer (20 points)
       - One "Wrong/Distractor" answer (0 points)
       
+      Keep each option concise and concrete (<= 14 characters).
       Output an array 'optionScores' corresponding to the order of options (e.g. [0, 100, 20, 50]).
       Identify the index (0-3) of the 'most correct' (100 point) answer as correctOptionIndex.
     `,
-    [TaskType.OBSERVATION]: "Generate an OBSERVATION task. Ask the user to describe a specific detail, color relationship, or emotional trigger in the image. Short answer format.",
-    [TaskType.ANALYSIS]: "Generate an ANALYSIS task. This is a deep dive. Ask for a comprehensive critique of the composition, lighting, and style. Essay format."
+    [TaskType.OBSERVATION]: "Generate an OBSERVATION task in one concise line. Ask the user to describe a specific detail, color relationship, or emotional trigger in the image. Keep it plain and clear. Short answer format.",
+    [TaskType.ANALYSIS]: "Generate an ANALYSIS task. Ask for a pointed critique of the composition, lighting, and style. Keep the ask short (one sentence) but allow for a thoughtful essay answer."
   };
 
   const varietyPrompt = randomFactor > 0.5 
     ? "Focus on high-contrast, modern, avant-garde aesthetics." 
     : "Focus on classical, harmonious, natural aesthetics.";
+
+  const brevityGuide = `
+    Use modern, easy-to-read Traditional Chinese.
+    Keep the main question within ~40 characters, one sentence max.
+    Avoid archaic or overly literary phrasing—be direct and conversational.
+    Keep options brief noun phrases when applicable.
+  `;
 
   const systemInstruction = `
     You are an expert Art Professor and Aesthetic Mentor. 
@@ -59,6 +73,7 @@ export const generateChallengeMetadata = async (apiKey: string, specificType?: T
     Category: ${category}.
     Task Type: ${type}.
     Style Direction: ${varietyPrompt}
+    Brevity + tone guide: ${brevityGuide}
     
     ${typeInstructions[type]}
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Send, RefreshCw, CheckCircle, Info, ArrowLeft, Image as ImageIcon, Timer, ArrowRight, XCircle, Flame, AlertCircle, Mic, MicOff } from 'lucide-react';
-import { Challenge, TaskType, AssessmentResult } from '../types';
+import { Challenge, TaskType, AssessmentResult, Category } from '../types';
 import { generateChallengeMetadata, generateChallengeImage, evaluateSubmission } from '../services/geminiService';
 import LoadingArt from './LoadingArt';
 
@@ -12,11 +12,12 @@ interface Props {
   onCancel: () => void;
   streak: number;
   apiKey: string;
+  categoryPool: Category[];
 }
 
 const TIMER_DURATION = 30; // 30 seconds for MCQs
 
-const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, streak, apiKey }) => {
+const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, streak, apiKey, categoryPool }) => {
   const [loading, setLoading] = useState(false);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
@@ -42,7 +43,7 @@ const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, str
     setLoading(true);
 
     try {
-      const meta = await generateChallengeMetadata(apiKey, forcedType);
+      const meta = await generateChallengeMetadata(apiKey, forcedType, categoryPool);
       const imageUrl = await generateChallengeImage(apiKey, meta.imagePrompt);
       
       setChallenge({

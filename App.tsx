@@ -4,13 +4,53 @@ import {
   Layout, Award, Brain, History as HistoryIcon, Zap, CheckCircle, 
   ArrowRight, BookOpen, PenTool, Trophy, Star, Sprout, 
   Flame, Crosshair, Microscope, Crown, User, ImageOff,
-  Camera, Edit2, Save, X, Sun, Moon, Timer, Palette, Mountain, Heart, Filter, Key
+  Camera, Edit2, Save, X, Sun, Moon, Timer, Palette, Mountain, Heart, Filter, Key, ChevronDown
 } from 'lucide-react';
 import { AssessmentResult, Challenge, UserStats, UserHistoryItem, TaskType, Badge, BadgeIconType, Category } from './types';
 import DailyChallenge from './components/DailyChallenge';
 import ProgressChart from './components/ProgressChart';
 import Logo from './components/Logo';
 import { INITIAL_STATS, LEVEL_THRESHOLDS, ALL_BADGES, getDynamicGreeting } from './constants';
+
+const STORAGE_VERSION = 2;
+
+const CATEGORY_OPTIONS: { value: Category; hint: string }[] = [
+  { value: Category.GRAPHIC_DESIGN, hint: '版面節奏與字感' },
+  { value: Category.FASHION, hint: '剪裁比例與配色' },
+  { value: Category.ARCHITECTURE, hint: '立面線條與尺度' },
+  { value: Category.LANDSCAPE, hint: '風景光影與空氣感' },
+  { value: Category.INDUSTRIAL, hint: '產品造型與手感預期' },
+  { value: Category.MOOD, hint: '色調與氛圍敘事' },
+  { value: Category.CINEMATIC, hint: '鏡頭語言與取景' },
+  { value: Category.COMPOSITION, hint: '視覺重心與平衡' },
+  { value: Category.COLOR, hint: '色彩對比與節奏' },
+  { value: Category.CREATIVE, hint: '跳脫框架的構想' },
+  { value: Category.INTERIOR, hint: '動線與空間感' },
+  { value: Category.PHOTOGRAPHY, hint: '取景與鏡位' },
+  { value: Category.ILLUSTRATION, hint: '筆觸與風格感' },
+  { value: Category.PACKAGING, hint: '開箱與材質預期' },
+  { value: Category.STAGE, hint: '展演氛圍佈局' },
+];
+
+const migrateStats = (raw: any): UserStats => {
+  const merged: UserStats = { 
+    ...INITIAL_STATS, 
+    ...raw,
+    dailyProgress: { ...INITIAL_STATS.dailyProgress, ...(raw?.dailyProgress || {}) },
+    badges: raw?.badges || [],
+    scoresHistory: raw?.scoresHistory || [],
+  };
+  if (!merged.lastStreakDate) merged.lastStreakDate = merged.dailyProgress.lastDate || '';
+  return merged;
+};
+
+const migrateHistory = (raw: any): UserHistoryItem[] => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(item => ({
+    ...item,
+    xpGained: item?.xpGained ?? 0
+  }));
+};
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'history' | 'profile'>('dashboard');
@@ -43,29 +83,39 @@ const App: React.FC = () => {
       const saved = localStorage.getItem('aesthetica_stats');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return { 
-          ...INITIAL_STATS, 
-          ...parsed, 
-          dailyProgress: { ...INITIAL_STATS.dailyProgress, ...parsed.dailyProgress },
-          badges: parsed.badges || [],
-          // Migration for old users who lack lastStreakDate
-          lastStreakDate: parsed.lastStreakDate || ''
-        };
+        return migrateStats(parsed);
       }
     } catch (e) {
       console.error("Error loading stats", e);
     }
     return INITIAL_STATS;
   });
-  
+
   const [history, setHistory] = useState<UserHistoryItem[]>(() => {
     try {
       const saved = localStorage.getItem('aesthetica_history');
-      return saved ? JSON.parse(saved) : [];
+      return saved ? migrateHistory(JSON.parse(saved)) : [];
     } catch(e) {
       return [];
     }
   });
+
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>(() => {
+    try {
+      const saved = localStorage.getItem('aesthetica_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter((item: string) => (Object.values(Category) as string[]).includes(item));
+          if (valid.length > 0) return valid as Category[];
+        }
+      }
+    } catch (e) {
+      console.warn("Error loading category preferences", e);
+    }
+    return Object.values(Category) as Category[];
+  });
+  const [showCategoryPanel, setShowCategoryPanel] = useState(false);
 
   // Check API Key on load
   useEffect(() => {
@@ -95,6 +145,7 @@ const App: React.FC = () => {
   useEffect(() => {
     try {
       localStorage.setItem('aesthetica_stats', JSON.stringify(stats));
+      localStorage.setItem('aesthetica_storage_version', STORAGE_VERSION.toString());
     } catch (e) {
       console.error("Failed to save stats:", e);
     }
@@ -125,6 +176,14 @@ const App: React.FC = () => {
     }
   }, [stats, history]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('aesthetica_categories', JSON.stringify(selectedCategories));
+    } catch (e) {
+      console.error("Failed to save category preferences", e);
+    }
+  }, [selectedCategories]);
+
   const handleSaveInitialApiKey = () => {
     if (tempApiKey.trim().length > 10) {
       setApiKey(tempApiKey.trim());
@@ -146,6 +205,19 @@ const App: React.FC = () => {
       alert("無效的 Key");
     }
   };
+
+  const toggleCategorySelection = (category: Category) => {
+    setSelectedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category) 
+        : [...prev, category]
+    );
+  };
+
+  const selectAllCategories = () => {
+    setSelectedCategories(Object.values(Category) as Category[]);
+  };
+  const toggleCategoryPanel = () => setShowCategoryPanel(prev => !prev);
 
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -393,6 +465,8 @@ const App: React.FC = () => {
       return true;
   });
 
+  const availableCategories = selectedCategories.length > 0 ? selectedCategories : (Object.values(Category) as Category[]);
+
   const renderDashboard = () => (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
@@ -432,6 +506,63 @@ const App: React.FC = () => {
              <span className="text-[10px] text-gray-500 uppercase tracking-widest">徽章</span>
            </div>
         </div>
+      </div>
+
+      <div className="bg-[#161616] border border-white/5 rounded-xl p-3 md:p-4 shadow-inner shadow-black/30">
+        <button 
+          onClick={toggleCategoryPanel}
+          className="w-full flex items-center justify-between text-left text-xs text-gray-400 hover:text-gray-200 transition"
+        >
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-aesthetic-gold/80" />
+            <span className="font-semibold text-sm text-white/90">題目類型偏好（選填）</span>
+            <span className="text-[11px] text-gray-500">已選 {availableCategories.length}/{CATEGORY_OPTIONS.length}</span>
+          </div>
+          <ChevronDown 
+            size={16} 
+            className={`text-gray-500 transition-transform ${showCategoryPanel ? 'rotate-180' : ''}`} 
+          />
+        </button>
+        {showCategoryPanel && (
+          <div className="mt-3 space-y-3">
+            <div className="flex items-center gap-2 justify-end">
+              <button 
+                onClick={selectAllCategories}
+                className="px-3 py-1 rounded-full border border-white/10 text-[11px] text-gray-300 hover:border-aesthetic-gold hover:text-aesthetic-gold transition"
+              >
+                全部
+              </button>
+              <button 
+                onClick={() => setSelectedCategories([])}
+                className="px-3 py-1 rounded-full border border-white/10 text-[11px] text-gray-300 hover:border-red-400 hover:text-red-300 transition"
+              >
+                清空
+              </button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {CATEGORY_OPTIONS.map(opt => {
+                const active = selectedCategories.includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => toggleCategorySelection(opt.value)}
+                    className={`text-left p-3 rounded-lg border transition-all ${
+                      active 
+                        ? 'border-aesthetic-gold/60 bg-aesthetic-gold/10 text-white shadow-[0_0_10px_rgba(212,175,55,0.15)]' 
+                        : 'border-white/5 bg-white/5 text-gray-300 hover:border-white/15'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-sm leading-snug">{opt.value}</span>
+                      {active && <CheckCircle size={14} className="text-aesthetic-gold" />}
+                    </div>
+                    <span className="text-[11px] text-gray-500 block mt-1 leading-tight">{opt.hint}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -786,6 +917,7 @@ const App: React.FC = () => {
             onCancel={() => setActiveTask(null)}
             streak={stats.streak}
             apiKey={apiKey}
+            categoryPool={availableCategories}
           />
         ) : (
           <>
