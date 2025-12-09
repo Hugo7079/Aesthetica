@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { AssessmentResult, Challenge, UserStats, UserHistoryItem, TaskType, Badge, BadgeIconType, Category } from './types';
 import DailyChallenge from './components/DailyChallenge';
+import * as imageStore from './services/imageStore';
 import ProgressChart from './components/ProgressChart';
 import Logo from './components/Logo';
 import { INITIAL_STATS, LEVEL_THRESHOLDS, ALL_BADGES, getDynamicGreeting } from './constants';
@@ -100,6 +101,23 @@ const App: React.FC = () => {
     }
   });
 
+  // Persist any existing base64 images found in localStorage into IndexedDB
+  useEffect(() => {
+    if (!history || history.length === 0) return;
+    (async () => {
+      try {
+        for (const item of history) {
+          const img = item.challenge.generatedImageUrl;
+          if (img && img.startsWith('data:')) {
+            await imageStore.saveImage(item.challenge.id, img);
+          }
+        }
+      } catch (err) {
+        console.warn('Error persisting images to IndexedDB:', err);
+      }
+    })();
+  }, []);
+
   const [selectedCategories, setSelectedCategories] = useState<Category[]>(() => {
     try {
       const saved = localStorage.getItem('aesthetica_categories');
@@ -175,6 +193,28 @@ const App: React.FC = () => {
       }
     }
   }, [stats, history]);
+
+  // Restore images from IndexedDB for history items that don't have generatedImageUrl
+  useEffect(() => {
+    if (!history || history.length === 0) return;
+    let canceled = false;
+    (async () => {
+      try {
+        for (const item of history) {
+          if (canceled) return;
+          if (!item.challenge.generatedImageUrl) {
+            const dataUrl = await imageStore.getImageDataUrl(item.challenge.id);
+            if (dataUrl) {
+              setHistory(prev => prev.map(h => h.id === item.id ? ({ ...h, challenge: { ...h.challenge, generatedImageUrl: dataUrl } }) : h));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Error restoring images from IndexedDB', err);
+      }
+    })();
+    return () => { canceled = true; };
+  }, [history]);
 
   useEffect(() => {
     try {

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Send, RefreshCw, CheckCircle, Info, ArrowLeft, Image as ImageIcon, Timer, ArrowRight, XCircle, Flame, AlertCircle, Mic, MicOff } from 'lucide-react';
 import { Challenge, TaskType, AssessmentResult, Category } from '../types';
 import { generateChallengeMetadata, generateChallengeImage, evaluateSubmission } from '../services/geminiService';
+import * as imageStore from '../services/imageStore';
 import LoadingArt from './LoadingArt';
 
 interface Props {
@@ -46,6 +47,14 @@ const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, str
       const meta = await generateChallengeMetadata(apiKey, forcedType, categoryPool);
       const imageUrl = await generateChallengeImage(apiKey, meta.imagePrompt);
       
+      // Persist image into IndexedDB and then set challenge state
+      try {
+        await imageStore.saveImage(meta.id, imageUrl);
+      } catch (e) {
+        // non-fatal
+        console.warn('Could not persist image to IndexedDB', e);
+      }
+
       setChallenge({
         ...meta,
         generatedImageUrl: imageUrl,
