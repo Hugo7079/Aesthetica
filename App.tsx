@@ -60,6 +60,8 @@ const App: React.FC = () => {
   const [greeting, setGreeting] = useState('');
   const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
   const [swMessage, setSwMessage] = useState<any | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateInProgress, setUpdateInProgress] = useState(false);
   
   // API Key State
   const [apiKey, setApiKey] = useState<string>(() => {
@@ -147,12 +149,13 @@ const App: React.FC = () => {
 
   // Listen for service worker events triggered by registration in index.tsx
   useEffect(() => {
-    const onUpdateFound = () => setSwUpdateAvailable(true);
+    const onUpdateFound = () => { setSwUpdateAvailable(true); setShowUpdateModal(true); };
     const onSwMessage = (e: any) => {
       const data = e?.detail || null;
       setSwMessage(data);
       if (data?.type === 'NEW_VERSION_ACTIVATED') {
         setSwUpdateAvailable(true);
+        setShowUpdateModal(true);
       }
     };
     window.addEventListener('sw:updatefound', onUpdateFound as EventListener);
@@ -257,14 +260,39 @@ const App: React.FC = () => {
 
   const applyServiceWorkerUpdate = async () => {
     try {
+      setUpdateInProgress(true);
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg?.waiting) {
         reg.waiting.postMessage({ type: 'SKIP_WAITING' });
       }
-      setTimeout(() => window.location.reload(), 500);
+      // Wait for activation message or fallback to timeout
+      await new Promise<void>((resolve) => {
+        let resolved = false;
+        const onMessage = (e: any) => {
+          const data = e?.detail || null;
+          if (data?.type === 'NEW_VERSION_ACTIVATED' && !resolved) {
+            resolved = true;
+            window.removeEventListener('sw:message', onMessage as EventListener);
+            resolve();
+          }
+        };
+        window.addEventListener('sw:message', onMessage as EventListener);
+        setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            window.removeEventListener('sw:message', onMessage as EventListener);
+            resolve();
+          }
+        }, 4500);
+      });
+      window.location.reload();
     } catch (err) {
       console.warn('Failed to apply SW update', err);
       window.location.reload();
+    } finally {
+      setUpdateInProgress(false);
+      setShowUpdateModal(false);
+      setSwUpdateAvailable(false);
     }
   };
 
@@ -985,13 +1013,29 @@ const App: React.FC = () => {
           </div>
         </div>
       </header>
-      {/* Service worker update banner */}
-      {swUpdateAvailable && (
-        <div className="fixed top-16 left-0 right-0 z-50 flex justify-center">
-          <div className="max-w-6xl mx-auto px-4 py-2 bg-yellow-400 text-black rounded-b shadow-md flex items-center gap-3">
-            <span className="text-sm font-semibold">新的版本已就緒</span>
-            <button onClick={applyServiceWorkerUpdate} className="ml-2 px-3 py-1 bg-black text-yellow-400 rounded font-semibold">立即更新</button>
-            <button onClick={() => setSwUpdateAvailable(false)} className="ml-2 px-2 py-1 text-black/70 hover:text-black">稍後</button>
+      {/* Service worker update modal (nicer UX) */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-6 backdrop-blur-sm bg-black/50">
+          <div className="w-full max-w-md bg-[#111] rounded-xl border border-white/10 shadow-2xl p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">新的版本已就緒</h3>
+                <p className="text-sm text-gray-400 mt-1">我們已經準備好新版功能與修正。是否要立即跳到新版？</p>
+              </div>
+              <div className="flex-shrink-0">
+                {updateInProgress ? (
+                  <div className="h-8 w-8 rounded-full border-4 border-white/20 border-t-transparent animate-spin"></div>
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-aesthetic-gold flex items-center justify-center text-black font-bold">N</div>
+                )}
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => { setShowUpdateModal(false); setSwUpdateAvailable(false); }} className="px-4 py-2 rounded-lg bg-transparent border border-white/10 text-gray-300 hover:border-white/20">稍後</button>
+              <button disabled={updateInProgress} onClick={applyServiceWorkerUpdate} className={`px-4 py-2 rounded-lg font-bold ${updateInProgress ? 'bg-gray-600 text-gray-400' : 'bg-aesthetic-gold text-black'}`}>
+                {updateInProgress ? '更新中...' : '立即更新'}
+              </button>
+            </div>
           </div>
         </div>
       )}
