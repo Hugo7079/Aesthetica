@@ -108,7 +108,8 @@ const App: React.FC = () => {
       try {
         for (const item of history) {
           const img = item.challenge.generatedImageUrl;
-          if (img && img.startsWith('data:')) {
+          if (img) {
+            // Save both data URLs and remote URLs into IndexedDB so they are persisted locally
             await imageStore.saveImage(item.challenge.id, img);
           }
         }

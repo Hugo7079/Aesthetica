@@ -50,15 +50,21 @@ const DailyChallenge: React.FC<Props> = ({ forcedType, onComplete, onCancel, str
       // Persist image into IndexedDB and then set challenge state
       try {
         await imageStore.saveImage(meta.id, imageUrl);
+        // Prefer using a local data URL version so it's stable; get the saved data URL back
+        const stored = await imageStore.getImageDataUrl(meta.id);
+        const stableUrl = stored || imageUrl;
+        setChallenge({
+          ...meta,
+          generatedImageUrl: stableUrl,
+        });
       } catch (e) {
-        // non-fatal
+        // non-fatal, still set challenge image
         console.warn('Could not persist image to IndexedDB', e);
+        setChallenge({
+          ...meta,
+          generatedImageUrl: imageUrl,
+        });
       }
-
-      setChallenge({
-        ...meta,
-        generatedImageUrl: imageUrl,
-      });
       
       // Start timer only for MCQs
       if (forcedType === TaskType.MULTIPLE_CHOICE) {

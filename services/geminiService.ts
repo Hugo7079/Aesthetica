@@ -118,7 +118,8 @@ export const generateChallengeMetadata = async (apiKey: string, specificType?: T
     const data = JSON.parse(text);
     
     return {
-      id: Date.now().toString(),
+      // Use a more robust unique id to avoid collisions when multiple requests occur within the same millisecond
+      id: (typeof crypto !== 'undefined' && (crypto as any).randomUUID) ? (crypto as any).randomUUID() : `${Date.now()}-${Math.floor(Math.random() * 1e9)}`,
       category,
       type,
       question: data.question || "題目生成中...",
@@ -161,11 +162,28 @@ export const generateChallengeImage = async (apiKey: string, prompt: string): Pr
 
     for (const part of response.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData) {
+        // Provided as inline base64, return as data URL
         return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
     }
     // Fallback image if model returns no image data but no error
-    return `https://picsum.photos/800/800?random=${Math.random()}`;
+    // Instead of returning a volatile external URL (which would be different on every load),
+    // fetch it and convert to a stable data URL so the UI always shows the same image.
+    const fallbackUrl = `https://picsum.photos/800/800?random=${Math.random()}`;
+    try {
+      const res = await fetch(fallbackUrl, { cache: 'reload' });
+      const blob = await res.blob();
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      // As a last resort return the fallback URL; but we try to keep data URL above all
+      console.warn('Failed to fetch fallback image to data URL:', err);
+      return fallbackUrl;
+    }
   } catch (error) {
     console.error("Error generating image:", error);
     return `https://picsum.photos/800/800?random=${Math.random()}`;
