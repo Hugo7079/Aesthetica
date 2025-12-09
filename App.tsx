@@ -58,6 +58,8 @@ const App: React.FC = () => {
   const [activeTask, setActiveTask] = useState<TaskType | null>(null);
   const [showLevelUp, setShowLevelUp] = useState<{old: number, new: number} | null>(null);
   const [greeting, setGreeting] = useState('');
+  const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
+  const [swMessage, setSwMessage] = useState<any | null>(null);
   
   // API Key State
   const [apiKey, setApiKey] = useState<string>(() => {
@@ -142,6 +144,24 @@ const App: React.FC = () => {
       setShowApiKeyModal(true);
     }
   }, [apiKey]);
+
+  // Listen for service worker events triggered by registration in index.tsx
+  useEffect(() => {
+    const onUpdateFound = () => setSwUpdateAvailable(true);
+    const onSwMessage = (e: any) => {
+      const data = e?.detail || null;
+      setSwMessage(data);
+      if (data?.type === 'NEW_VERSION_ACTIVATED') {
+        setSwUpdateAvailable(true);
+      }
+    };
+    window.addEventListener('sw:updatefound', onUpdateFound as EventListener);
+    window.addEventListener('sw:message', onSwMessage as EventListener);
+    return () => {
+      window.removeEventListener('sw:updatefound', onUpdateFound as EventListener);
+      window.removeEventListener('sw:message', onSwMessage as EventListener);
+    };
+  }, []);
 
   // Check for daily task reset
   useEffect(() => {
@@ -232,6 +252,19 @@ const App: React.FC = () => {
       setShowApiKeyModal(false);
     } else {
       alert("請輸入有效的 Gemini API Key");
+    }
+  };
+
+  const applyServiceWorkerUpdate = async () => {
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg?.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+      setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+      console.warn('Failed to apply SW update', err);
+      window.location.reload();
     }
   };
 
@@ -952,6 +985,16 @@ const App: React.FC = () => {
           </div>
         </div>
       </header>
+      {/* Service worker update banner */}
+      {swUpdateAvailable && (
+        <div className="fixed top-16 left-0 right-0 z-50 flex justify-center">
+          <div className="max-w-6xl mx-auto px-4 py-2 bg-yellow-400 text-black rounded-b shadow-md flex items-center gap-3">
+            <span className="text-sm font-semibold">新的版本已就緒</span>
+            <button onClick={applyServiceWorkerUpdate} className="ml-2 px-3 py-1 bg-black text-yellow-400 rounded font-semibold">立即更新</button>
+            <button onClick={() => setSwUpdateAvailable(false)} className="ml-2 px-2 py-1 text-black/70 hover:text-black">稍後</button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="pt-24 px-4 max-w-6xl mx-auto min-h-[calc(100vh-80px)]">

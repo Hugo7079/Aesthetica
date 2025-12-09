@@ -5,6 +5,14 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// Listen for messages from clients (e.g., SKIP_WAITING)
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('activate', (event) => {
   // Clean up old caches if version changes
   event.waitUntil(
@@ -14,7 +22,11 @@ self.addEventListener('activate', (event) => {
           .filter((key) => key !== CACHE_VERSION)
           .map((key) => caches.delete(key))
       )
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim()).then(() => {
+      return self.clients.matchAll({ includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => client.postMessage({ type: 'NEW_VERSION_ACTIVATED' }));
+      });
+    })
   );
 });
 

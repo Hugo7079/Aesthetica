@@ -5,9 +5,28 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 // Register service worker for PWA install (no-op in dev)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/Aesthetica/sw.js').catch((err) => {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/Aesthetica/sw.js');
+      // Notify UI when an update is found
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker?.addEventListener('statechange', () => {
+          if (newWorker?.state === 'installed') {
+            if (navigator.serviceWorker.controller) {
+              // New update available
+              window.dispatchEvent(new CustomEvent('sw:updatefound'));
+            }
+          }
+        });
+      });
+    } catch (err) {
       console.warn('Service worker registration failed', err);
+    }
+
+    // Forward SW messages as window events
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      window.dispatchEvent(new CustomEvent('sw:message', { detail: event.data }));
     });
   });
 }
